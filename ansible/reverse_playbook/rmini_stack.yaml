@@ -1,0 +1,76 @@
+- hosts: builder
+  tasks:
+  - debug: var=os_server.server.accessIPv4
+  - name: boot an instance in nova
+    os_server:
+      auth: '{{ osp_user }}'
+      flavor: '{{ nova_flavor }}'
+      floating_ip_pools: '{{ osp_admin_net.name }}'
+      image: '{{ image_name }}'
+      key_name: '{{ osp_user.username }}'
+      name: '{{ instance_name }}'
+      state: absent
+    register: os_server
+  - name: create private router
+    os_router:
+      auth: '{{ osp_user }}'
+      interfaces: '{{ osp_priv.subnet_name }}'
+      name: '{{ osp_priv.router_name }}'
+      network: '{{ osp_admin_net.name }}'
+      state: absent
+    tags:
+    - priv_nets
+  - name: create private subnet
+    os_subnet:
+      auth: '{{ osp_user }}'
+      cidr: '{{ osp_priv.cidr }}'
+      dns_nameservers: '{{ osp_priv.dns }}'
+      enable_dhcp: true
+      name: '{{ osp_priv.subnet_name }}'
+      network_name: '{{ osp_priv.net_name }}'
+      state: absent
+    tags:
+    - priv_nets
+  - name: create private network
+    os_network:
+      auth: '{{ osp_user }}'
+      name: '{{ osp_priv.net_name }}'
+      state: absent
+    tags:
+    - priv_nets
+  - name: '...and ssh'
+    os_security_group_rule:
+      auth: '{{ osp_user }}'
+      port_range_max: 22
+      port_range_min: 22
+      protocol: tcp
+      remote_ip_prefix: 0.0.0.0/0
+      security_group: '{{ osp_priv.security_group }}'
+      state: absent
+    tags:
+    - secgroups
+  - name: open up ping
+    os_security_group_rule:
+      auth: '{{ osp_user }}'
+      protocol: icmp
+      remote_ip_prefix: 0.0.0.0/0
+      security_group: '{{ osp_priv.security_group }}'
+      state: absent
+    tags:
+    - secgroups
+  - name: create a security group
+    os_security_group:
+      auth: '{{ osp_user }}'
+      name: '{{ osp_priv.security_group }}'
+      state: absent
+  - name: upload image to glance
+    os_image:
+      auth: '{{ osp_user }}'
+      container_format: bare
+      disk_format: '{{ glance_image.disk }}'
+      filename: '{{ glance_image.file }}'
+      name: '{{ glance_image.name }}'
+      state: absent
+    tags:
+    - qcow2
+    - glance
