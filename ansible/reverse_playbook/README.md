@@ -254,7 +254,7 @@ TASK [UNDO: ...and ssh] ********************************************************
 changed: [builder.example.com]
 
 TASK [UNDO: open up ping] ************************************************************
-changed: [UNDO: builder.example.com]
+changed: [builder.example.com]
 
 TASK [UNDO: create a security group] *************************************************
 changed: [builder.example.com]
