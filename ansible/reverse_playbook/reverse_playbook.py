@@ -10,18 +10,22 @@ args = parser.parse_args()
 
 try:
   playbook = yaml.load(file(args.infile, 'r'))
-  if len(playbook) == 1 and playbook[0]['tasks'] is not None:
-    tasks = playbook[0]['tasks']
-    tasks.reverse()
-    for task in tasks:
-      for key in task:
-        if 'state' in task[key]:
-          task[key]['state'] = 'absent'
-    playbook[0]['tasks'] = tasks
-    if args.verbose:
-        print yaml.dump(playbook, default_flow_style=False)
-    rev_file = file(args.outfile, 'w')
-    print "saving reversed version of {} to {}".format(args.infile, args.outfile)
-    yaml.dump(playbook, rev_file, default_flow_style=False)
 except yaml.YAMLError:
+  print "not a valid playbook"
+if len(playbook) == 1 and playbook[0]['tasks'] is not None:
+  tasks = playbook[0]['tasks']
+  tasks.reverse()
+  for task in tasks:
+    if task.has_key('name'):
+        task['name'] = "UNDO: {}".format(task['name'])
+    for key in task:
+      if 'state' in task[key]:
+        task[key]['state'] = 'absent'
+  playbook[0]['tasks'] = tasks
+  if args.verbose:
+      print yaml.dump(playbook, default_flow_style=False)
+  rev_file = file(args.outfile, 'w')
+  print "saving reversed version of {} to {}".format(args.infile, args.outfile)
+  yaml.dump(playbook, rev_file, default_flow_style=False)
+else:
   print "not a valid playbook"

@@ -145,7 +145,7 @@ $ ./reverse_playbook.py -v mini_stack.yaml rmini_stack.yaml
 - hosts: builder
   tasks:
   - debug: var=os_server.server.accessIPv4
-  - name: boot an instance in nova
+  - name: 'UNDO: boot an instance in nova'
     os_server:
       auth: '{{ osp_user }}'
       flavor: '{{ nova_flavor }}'
@@ -155,7 +155,7 @@ $ ./reverse_playbook.py -v mini_stack.yaml rmini_stack.yaml
       name: '{{ instance_name }}'
       state: absent
     register: os_server
-  - name: create private router
+  - name: 'UNDO: create private router'
     os_router:
       auth: '{{ osp_user }}'
       interfaces: '{{ osp_priv.subnet_name }}'
@@ -164,7 +164,7 @@ $ ./reverse_playbook.py -v mini_stack.yaml rmini_stack.yaml
       state: absent
     tags:
     - priv_nets
-  - name: create private subnet
+  - name: 'UNDO: create private subnet'
     os_subnet:
       auth: '{{ osp_user }}'
       cidr: '{{ osp_priv.cidr }}'
@@ -175,14 +175,14 @@ $ ./reverse_playbook.py -v mini_stack.yaml rmini_stack.yaml
       state: absent
     tags:
     - priv_nets
-  - name: create private network
+  - name: 'UNDO: create private network'
     os_network:
       auth: '{{ osp_user }}'
       name: '{{ osp_priv.net_name }}'
       state: absent
     tags:
     - priv_nets
-  - name: '...and ssh'
+  - name: 'UNDO: ...and ssh'
     os_security_group_rule:
       auth: '{{ osp_user }}'
       port_range_max: 22
@@ -193,7 +193,7 @@ $ ./reverse_playbook.py -v mini_stack.yaml rmini_stack.yaml
       state: absent
     tags:
     - secgroups
-  - name: open up ping
+  - name: 'UNDO: open up ping'
     os_security_group_rule:
       auth: '{{ osp_user }}'
       protocol: icmp
@@ -202,12 +202,12 @@ $ ./reverse_playbook.py -v mini_stack.yaml rmini_stack.yaml
       state: absent
     tags:
     - secgroups
-  - name: create a security group
+  - name: 'UNDO: create a security group'
     os_security_group:
       auth: '{{ osp_user }}'
       name: '{{ osp_priv.security_group }}'
       state: absent
-  - name: upload image to glance
+  - name: 'UNDO: upload image to glance'
     os_image:
       auth: '{{ osp_user }}'
       container_format: bare
@@ -220,6 +220,7 @@ $ ./reverse_playbook.py -v mini_stack.yaml rmini_stack.yaml
     - glance
 
 saving reversed version of mini_stack.yaml to rmini_stack.yaml
+$ 
 ~~~
 
 Which can then be run to tear it all down again:
@@ -237,28 +238,28 @@ ok: [builder.example.com] => {
     "os_server.server.accessIPv4": "VARIABLE IS NOT DEFINED!"
 }
 
-TASK [boot an instance in nova] ************************************************
+TASK [UNDO: boot an instance in nova] ************************************************
 changed: [builder.example.com]
 
-TASK [create private router] ***************************************************
+TASK [UNDO: create private router] ***************************************************
 changed: [builder.example.com]
 
-TASK [create private subnet] ***************************************************
+TASK [UNDO: create private subnet] ***************************************************
 changed: [builder.example.com]
 
-TASK [create private network] **************************************************
+TASK [UNDO: create private network] **************************************************
 changed: [builder.example.com]
 
-TASK [...and ssh] **************************************************************
+TASK [UNDO: ...and ssh] **************************************************************
 changed: [builder.example.com]
 
-TASK [open up ping] ************************************************************
+TASK [UNDO: open up ping] ************************************************************
+changed: [UNDO: builder.example.com]
+
+TASK [UNDO: create a security group] *************************************************
 changed: [builder.example.com]
 
-TASK [create a security group] *************************************************
-changed: [builder.example.com]
-
-TASK [upload image to glance] **************************************************
+TASK [UNDO: upload image to glance] **************************************************
 changed: [builder.example.com]
 
 PLAY RECAP *********************************************************************
@@ -267,5 +268,4 @@ builder.example.com                : ok=10   changed=8    unreachable=0    faile
 $
 ~~~
 
-It's kind of dirty, and dosen't flip the verbiage around, but it will do me until an equivalent feature lands in ansible.
-
+It's kind of dirty, but it will do me until an equivalent feature lands in ansible.

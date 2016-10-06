@@ -1,7 +1,7 @@
 - hosts: builder
   tasks:
   - debug: var=os_server.server.accessIPv4
-  - name: boot an instance in nova
+  - name: 'UNDO: boot an instance in nova'
     os_server:
       auth: '{{ osp_user }}'
       flavor: '{{ nova_flavor }}'
@@ -11,7 +11,7 @@
       name: '{{ instance_name }}'
       state: absent
     register: os_server
-  - name: create private router
+  - name: 'UNDO: create private router'
     os_router:
       auth: '{{ osp_user }}'
       interfaces: '{{ osp_priv.subnet_name }}'
@@ -20,7 +20,7 @@
       state: absent
     tags:
     - priv_nets
-  - name: create private subnet
+  - name: 'UNDO: create private subnet'
     os_subnet:
       auth: '{{ osp_user }}'
       cidr: '{{ osp_priv.cidr }}'
@@ -31,14 +31,14 @@
       state: absent
     tags:
     - priv_nets
-  - name: create private network
+  - name: 'UNDO: create private network'
     os_network:
       auth: '{{ osp_user }}'
       name: '{{ osp_priv.net_name }}'
       state: absent
     tags:
     - priv_nets
-  - name: '...and ssh'
+  - name: 'UNDO: ...and ssh'
     os_security_group_rule:
       auth: '{{ osp_user }}'
       port_range_max: 22
@@ -49,7 +49,7 @@
       state: absent
     tags:
     - secgroups
-  - name: open up ping
+  - name: 'UNDO: open up ping'
     os_security_group_rule:
       auth: '{{ osp_user }}'
       protocol: icmp
@@ -58,12 +58,12 @@
       state: absent
     tags:
     - secgroups
-  - name: create a security group
+  - name: 'UNDO: create a security group'
     os_security_group:
       auth: '{{ osp_user }}'
       name: '{{ osp_priv.security_group }}'
       state: absent
-  - name: upload image to glance
+  - name: 'UNDO: upload image to glance'
     os_image:
       auth: '{{ osp_user }}'
       container_format: bare
